@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIC Broadband – Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --p1:#6d28d9;--p2:#4338ca;--p3:#0ea5e9;
+  --acc:#a78bfa;--acc2:#38bdf8;
+  --bg:#07071a;--bg2:#0c0c22;--bg3:#101028;
+  --surface:rgba(16,16,40,0.9);--surface2:rgba(20,20,50,0.7);
+  --glass:rgba(255,255,255,0.04);--gb:rgba(255,255,255,0.1);
+  --text:#f1f0ff;--text2:#94a3b8;--text3:#64748b;
+  --success:#10b981;--danger:#f43f5e;--warn:#f59e0b;
+  --sidebar-w:260px;
+  --r:14px;--r2:10px;
+  --tr:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg:#f5f3ff;--bg2:#ede9fe;--bg3:#e0d9ff;
+  --surface:rgba(255,255,255,0.92);--surface2:rgba(255,255,255,0.7);
+  --glass:rgba(109,40,217,0.05);--gb:rgba(109,40,217,0.15);
+  --text:#1e1b4b;--text2:#4c4469;--text3:#6b7280;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;transition:background .4s,color .4s}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+button,input,select,textarea{font-family:'DM Sans',sans-serif}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--p1);border-radius:3px}
+
+/* ===== LOGIN PAGE ===== */
+#loginPage {
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#loginPage::before {
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 20% 30%,rgba(109,40,217,.35) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 70%,rgba(14,165,233,.2) 0%,transparent 55%);
+}
+.login-particles {
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.particle {
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  background:rgba(167,139,250,.4);animation:float linear infinite;
+}
+@keyframes float{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-10px) scale(1);opacity:0}}
+.login-card {
+  position:relative;z-index:1;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:blur(30px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:24px;
+  padding:2.5rem 2.25rem;
+  width:100%;max-width:420px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 1px rgba(109,40,217,.2);
+  animation:cardIn .6s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}
+.login-logo {
+  text-align:center;margin-bottom:2rem;
+}
+.login-logo-text {
+  font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
+  background:linear-gradient(135deg,#38bdf8,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:block;margin-bottom:.25rem;
+}
+.login-logo-sub{color:rgba(255,255,255,.5);font-size:.85rem}
+.login-icon-wrap {
+  width:60px;height:60px;border-radius:18px;
+  background:linear-gradient(135deg,var(--p1),var(--p3));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;color:#fff;margin:0 auto 1rem;
+  box-shadow:0 8px 25px rgba(109,40,217,.4);
+}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.8px}
+.form-group input {
+  width:100%;padding:.85rem 1rem .85rem 2.75rem;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;color:#fff;font-size:.95rem;
+  transition:var(--tr);outline:none;
+}
+.form-group input:focus{border-color:rgba(167,139,250,.6);background:rgba(109,40,217,.12);box-shadow:0 0 0 3px rgba(109,40,217,.15)}
+.form-group input::placeholder{color:rgba(255,255,255,.3)}
+.input-wrap{position:relative}
+.input-wrap i{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.35);font-size:.9rem}
+.toggle-pw{position:absolute;right:.85rem;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;padding:0}
+.login-btn {
+  width:100%;padding:.95rem;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--p1),var(--p2));
+  color:#fff;font-weight:700;font-size:1rem;cursor:pointer;
+  transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:.5rem;
+  margin-top:.5rem;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(109,40,217,.45)}
+.login-btn:active{transform:translateY(0)}
+.login-error {
+  background:rgba(244,63,94,.15);border:1px solid rgba(244,63,94,.4);
+  color:#fda4af;padding:.75rem 1rem;border-radius:10px;
+  font-size:.875rem;margin-top:1rem;display:none;
+  align-items:center;gap:.5rem;
+}
+.login-error.show{display:flex}
+.login-footer{text-align:center;margin-top:1.5rem;color:rgba(255,255,255,.35);font-size:.8rem}
+
+/* ===== DASHBOARD LAYOUT ===== */
+#adminApp{display:none;min-height:100vh}
+#adminApp.active{display:flex}
+
+/* SIDEBAR */
+.sidebar {
+  width:var(--sidebar-w);min-height:100vh;
+  background:var(--bg2);border-right:1px solid var(--gb);
+  display:flex;flex-direction:column;
+  position:fixed;left:0;top:0;bottom:0;
+  transition:transform .3s ease,width .3s ease;
+  z-index:500;overflow-y:auto;
+}
+.sidebar-header {
+  padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar-logo{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+  background:linear-gradient(135deg,var(--acc2),var(--acc));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-badge{background:linear-gradient(135deg,var(--p1),var(--p3));color:#fff;padding:.15rem .5rem;border-radius:50px;font-size:.65rem;font-weight:700}
+.sidebar-nav{padding:1rem 0;flex:1}
+.nav-section{padding:.25rem .75rem;margin-bottom:.25rem}
+.nav-section-label{font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:.25rem .5rem;margin-bottom:.25rem}
+.nav-item {
+  display:flex;align-items:center;gap:.75rem;
+  padding:.65rem .85rem;border-radius:10px;
+  color:var(--text2);font-size:.875rem;font-weight:500;
+  cursor:pointer;transition:var(--tr);margin-bottom:.15rem;
+  position:relative;
+}
+.nav-item i{width:18px;text-align:center;font-size:.9rem}
+.nav-item:hover{background:var(--glass);color:var(--acc)}
+.nav-item.active{background:linear-gradient(135deg,rgba(109,40,217,.25),rgba(14,165,233,.1));color:var(--acc);border:1px solid rgba(109,40,217,.2)}
+.nav-item .badge{position:absolute;right:.75rem;background:var(--danger);color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:50px;font-weight:700}
+.sidebar-footer {
+  padding:1rem;border-top:1px solid var(--gb);
+}
+.admin-avatar {
+  display:flex;align-items:center;gap:.75rem;
+  padding:.65rem;border-radius:10px;
+  background:var(--glass);margin-bottom:.75rem;
+}
+.avatar-circle{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p3));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;font-weight:700;flex-shrink:0}
+.avatar-name{font-size:.85rem;font-weight:600;color:var(--text)}
+.avatar-role{font-size:.72rem;color:var(--text3)}
+.logout-btn {
+  width:100%;padding:.6rem;border:1px solid rgba(244,63,94,.3);
+  background:rgba(244,63,94,.08);color:var(--danger);
+  border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--tr);
+}
+.logout-btn:hover{background:rgba(244,63,94,.18);border-color:var(--danger)}
+
+/* MAIN CONTENT */
+.main {
+  margin-left:var(--sidebar-w);flex:1;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+.topbar {
+  padding:1rem 1.5rem;border-bottom:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:400;
+}
+.topbar-left{display:flex;align-items:center;gap:1rem}
+.page-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+.page-sub{font-size:.8rem;color:var(--text3);margin-top:.1rem}
+.topbar-right{display:flex;align-items:center;gap:.75rem}
+.tb-btn {
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--gb);
+  background:var(--glass);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.875rem;transition:var(--tr);
+}
+.tb-btn:hover{background:var(--p1);border-color:var(--p1);color:#fff}
+.content{padding:1.5rem;flex:1}
+
+/* ===== PAGES ===== */
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ===== OVERVIEW CARDS ===== */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card {
+  background:var(--surface);border:1px solid var(--gb);
+  border-radius:var(--r);padding:1.25rem;
+  transition:var(--tr);cursor:default;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;background:linear-gradient(135deg,rgba(109,40,217,.06),rgba(14,165,233,.04))}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.stat-card:hover::before{opacity:1}
+.stat-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.stat-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.stat-card-badge{font-size:.72rem;font-weight:600;padding:.2rem .6rem;border-radius:50px}
+.stat-card-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:.2rem}
+.stat-card-label{font-size:.8rem;color:var(--text2)}
+.stat-card-change{font-size:.75rem;margin-top:.5rem;color:var(--success)}
+
+/* ===== TABLE ===== */
+.card {
+  background:var(--surface);border:1px solid var(--gb);
+  border-radius:var(--r);overflow:hidden;
+}
+.card-header {
+  padding:1rem 1.25rem;border-bottom:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;
+}
+.card-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700}
+.card-actions{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.search-input {
+  padding:.45rem .9rem .45rem 2.1rem;
+  background:var(--glass);border:1px solid var(--gb);
+  border-radius:8px;color:var(--text);font-size:.825rem;
+  outline:none;transition:var(--tr);width:200px;
+}
+.search-input:focus{border-color:var(--acc);background:var(--surface2);width:240px}
+.search-wrap{position:relative}
+.search-wrap i{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.8rem}
+.btn {
+  padding:.45rem .95rem;border-radius:8px;font-size:.825rem;
+  font-weight:600;cursor:pointer;transition:var(--tr);border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:.4rem;
+}
+.btn-primary{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;border-color:transparent}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(109,40,217,.35)}
+.btn-sm{padding:.3rem .7rem;font-size:.75rem}
+.btn-danger{background:rgba(244,63,94,.1);color:var(--danger);border-color:rgba(244,63,94,.25)}
+.btn-danger:hover{background:rgba(244,63,94,.2)}
+.btn-success{background:rgba(16,185,129,.1);color:var(--success);border-color:rgba(16,185,129,.25)}
+.btn-success:hover{background:rgba(16,185,129,.2)}
+.btn-warn{background:rgba(245,158,11,.1);color:var(--warn);border-color:rgba(245,158,11,.25)}
+.btn-warn:hover{background:rgba(245,158,11,.2)}
+.btn-ghost2{background:var(--glass);color:var(--text2);border-color:var(--gb)}
+.btn-ghost2:hover{border-color:var(--acc);color:var(--acc)}
+table{width:100%;border-collapse:collapse}
+th{padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;background:var(--glass);border-bottom:1px solid var(--gb)}
+td{padding:.8rem 1rem;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--glass)}
+.table-wrap{overflow-x:auto}
+.status-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:600}
+.status-active{background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.25)}
+.status-pending{background:rgba(245,158,11,.12);color:var(--warn);border:1px solid rgba(245,158,11,.25)}
+.status-disconnected{background:rgba(244,63,94,.12);color:var(--danger);border:1px solid rgba(244,63,94,.25)}
+.status-completed{background:rgba(16,185,129,.12);color:var(--success);border:1px solid rgba(16,185,129,.25)}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty-state i{font-size:2.5rem;margin-bottom:.75rem;display:block;opacity:.4}
+
+/* ===== MODAL ===== */
+.modal-bg {
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);z-index:2000;
+  display:none;align-items:center;justify-content:center;
+  padding:1rem;
+}
+.modal-bg.open{display:flex}
+.modal-box {
+  background:var(--bg2);border:1px solid var(--gb);
+  border-radius:var(--r);width:100%;max-width:500px;
+  max-height:90vh;overflow-y:auto;
+  animation:cardIn .3s ease;
+}
+.modal-header{padding:1.25rem;border-bottom:1px solid var(--gb);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:.25rem;transition:var(--tr)}
+.modal-close:hover{color:var(--danger)}
+.modal-body{padding:1.25rem}
+.modal-footer{padding:1rem 1.25rem;border-top:1px solid var(--gb);display:flex;justify-content:flex-end;gap:.75rem}
+.field-group{margin-bottom:1rem}
+.field-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px}
+.field-group input,.field-group select,.field-group textarea {
+  width:100%;padding:.65rem .85rem;
+  background:var(--glass);border:1px solid var(--gb);
+  border-radius:8px;color:var(--text);font-size:.875rem;outline:none;transition:var(--tr);
+}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--acc);background:var(--surface2)}
+.field-group select option{background:var(--bg2)}
+.field-group textarea{min-height:80px;resize:vertical}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* ===== OFFERS ===== */
+.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+.offer-card{
+  background:var(--surface);border:1px solid var(--gb);
+  border-radius:var(--r);padding:1.25rem;
+  position:relative;overflow:hidden;transition:var(--tr);
+}
+.offer-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.2)}
+.offer-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--p1),var(--p3))}
+.offer-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.4rem}
+.offer-desc{font-size:.85rem;color:var(--text2);margin-bottom:.75rem}
+.offer-meta{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:var(--text3)}
+.offer-actions{display:flex;gap:.5rem;margin-top:.75rem}
+.active-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}}
+
+/* ===== QUICK STATS ROW ===== */
+.recent-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+@media(max-width:900px){.recent-grid{grid-template-columns:1fr}}
+.activity-list{max-height:300px;overflow-y:auto}
+.activity-item{display:flex;align-items:flex-start;gap:.75rem;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.activity-text{font-size:.825rem;color:var(--text2)}
+.activity-time{font-size:.72rem;color:var(--text3);margin-top:.15rem}
+
+/* ===== PLANS ===== */
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-top:1rem}
+.plan-admin-card{
+  background:var(--surface);border:1px solid var(--gb);
+  border-radius:var(--r);padding:1.25rem;
+  position:relative;transition:var(--tr);
+}
+.plan-admin-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.2)}
+.plan-admin-card.popular{border-color:rgba(109,40,217,.4)}
+.plan-speed-tag{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--acc)}
+.plan-price-tag{font-size:.9rem;color:var(--text2);margin-bottom:.5rem}
+.plan-features-list{margin:.75rem 0;display:flex;flex-direction:column;gap:.3rem}
+.plan-features-list li{font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:.4rem}
+.plan-features-list li i{color:var(--success);font-size:.72rem}
+.plan-card-footer{display:flex;gap:.5rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--gb)}
+
+/* ===== RESPONSIVE ===== */
+.hamburger-dash{display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:1.2rem}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger-dash{display:flex;align-items:center}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .field-row{grid-template-columns:1fr}
+  .recent-grid{grid-template-columns:1fr}
+  .plans-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .cards-grid{grid-template-columns:1fr}
+  .content{padding:1rem}
+  .topbar{padding:.75rem 1rem}
+}
+
+/* ===== TOAST ===== */
+#toastWrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9000;display:flex;flex-direction:column;gap:.5rem}
+.toast{
+  background:var(--bg2);border:1px solid var(--gb);
+  border-radius:10px;padding:.75rem 1rem;
+  display:flex;align-items:center;gap:.6rem;
+  font-size:.875rem;min-width:240px;
+  animation:toastIn .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.toast.out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateX(40px)}}
+.toast.success{border-color:rgba(16,185,129,.3)}
+.toast.error{border-color:rgba(244,63,94,.3)}
+.toast-icon.success{color:var(--success)}
+.toast-icon.error{color:var(--danger)}
+
+/* ===== OVERLAY for mobile sidebar ===== */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:499}
+.sidebar-overlay.open{display:block}
+
+/* ===== CHART PLACEHOLDER ===== */
+.mini-chart{height:60px;position:relative;overflow:hidden}
+.chart-bars{display:flex;align-items:flex-end;gap:3px;height:100%;padding-top:8px}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:height .5s ease;min-width:6px}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="loginPage">
+  <div class="login-particles" id="particles"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-icon-wrap"><i class="fas fa-wifi"></i></div>
+      <span class="login-logo-text">GIC Broadband</span>
+      <span class="login-logo-sub">Admin Panel · Secured Access</span>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <div class="input-wrap">
+        <i class="fas fa-user"></i>
+        <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
+        <button class="toggle-pw" onclick="togglePw()" type="button"><i class="fas fa-eye" id="pwEye"></i></button>
+      </div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt"></i> Sign In to Dashboard
+    </button>
+    <div class="login-error" id="loginErr">
+      <i class="fas fa-circle-exclamation"></i>
+      <span id="loginErrMsg">Invalid username or password. Please try again.</span>
+    </div>
+    <div class="login-footer">Protected Admin Area · GIC Broadband © 2024</div>
+  </div>
+</div>
+
+<!-- ===== ADMIN APP ===== -->
+<div id="adminApp">
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div>
+        <div class="sidebar-logo">GIC Broadband</div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:.15rem">Admin Dashboard</div>
+      </div>
+      <span class="sidebar-badge">ADMIN</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <div class="nav-item active" data-page="overview" onclick="navTo('overview',this)">
+          <i class="fas fa-chart-pie"></i> Overview
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Management</div>
+        <div class="nav-item" data-page="customers" onclick="navTo('customers',this)">
+          <i class="fas fa-users"></i> Customers
+        </div>
+        <div class="nav-item" data-page="plans" onclick="navTo('plans',this)">
+          <i class="fas fa-tags"></i> Plans
+        </div>
+        <div class="nav-item" data-page="installations" onclick="navTo('installations',this)">
+          <i class="fas fa-tools"></i> Installations
+          <span class="badge" id="pendingBadge" style="display:none">0</span>
+        </div>
+        <div class="nav-item" data-page="offers" onclick="navTo('offers',this)">
+          <i class="fas fa-gift"></i> Offers
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">System</div>
+        <div class="nav-item" data-page="logs" onclick="navTo('logs',this)">
+          <i class="fas fa-history"></i> Activity Logs
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">
+        <div class="avatar-circle">A</div>
+        <div>
+          <div class="avatar-name">Administrator</div>
+          <div class="avatar-role">Super Admin</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-dash" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div>
+          <div class="page-title" id="pageTitle">Overview</div>
+          <div class="page-sub" id="pageSub">Welcome back, Admin</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="tb-btn" onclick="refreshData()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+        <button class="tb-btn" onclick="toggleTheme()" title="Toggle Theme" id="themeBtn"><i class="fas fa-moon"></i></button>
+        <a href="index.html" class="tb-btn" title="Back to Website"><i class="fas fa-globe"></i></a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== OVERVIEW PAGE ===== -->
+      <div class="page active" id="page-overview">
+        <div class="cards-grid" id="overviewCards"></div>
+        <div class="recent-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fas fa-history" style="color:var(--acc);margin-right:.5rem"></i>Recent Activity</div>
+            </div>
+            <div class="modal-body">
+              <div class="activity-list" id="activityList"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fas fa-tools" style="color:var(--warn);margin-right:.5rem"></i>Pending Installations</div>
+              <button class="btn btn-sm btn-warn" onclick="navTo('installations',document.querySelector('[data-page=installations]'))"><i class="fas fa-eye"></i> View All</button>
+            </div>
+            <div class="modal-body">
+              <div id="pendingInstalls"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS PAGE ===== -->
+      <div class="page" id="page-customers">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-users" style="color:var(--acc);margin-right:.5rem"></i>Customer Management</div>
+            <div class="card-actions">
+              <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input class="search-input" type="text" placeholder="Search customers..." id="custSearch" oninput="renderCustomers()">
+              </div>
+              <button class="btn btn-primary" onclick="openCustModal()"><i class="fas fa-plus"></i> Add Customer</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Phone</th><th>Pincode</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody id="custTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PLANS PAGE ===== -->
+      <div class="page" id="page-plans">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700">Plan Management</h2>
+            <div style="font-size:.8rem;color:var(--text3);margin-top:.15rem">Manage broadband plans shown on the website</div>
+          </div>
+          <button class="btn btn-primary" onclick="openPlanModal()"><i class="fas fa-plus"></i> Add Plan</button>
+        </div>
+        <div class="plans-grid" id="plansGrid"></div>
+      </div>
+
+      <!-- ===== INSTALLATIONS PAGE ===== -->
+      <div class="page" id="page-installations">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-tools" style="color:var(--warn);margin-right:.5rem"></i>Installation Requests</div>
+            <div class="card-actions">
+              <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input class="search-input" type="text" placeholder="Search..." id="instSearch" oninput="renderInstallations()">
+              </div>
+              <select id="instFilter" onchange="renderInstallations()" style="padding:.4rem .7rem;background:var(--glass);border:1px solid var(--gb);border-radius:8px;color:var(--text);font-size:.8rem;outline:none">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Pincode</th><th>Plan</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="instTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OFFERS PAGE ===== -->
+      <div class="page" id="page-offers">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700">Offers Manager</h2>
+            <div style="font-size:.8rem;color:var(--text3);margin-top:.15rem">Active offers are automatically shown on the website</div>
+          </div>
+          <button class="btn btn-primary" onclick="openOfferModal()"><i class="fas fa-plus"></i> Add Offer</button>
+        </div>
+        <div class="offers-grid" id="offersGrid"></div>
+      </div>
+
+      <!-- ===== LOGS PAGE ===== -->
+      <div class="page" id="page-logs">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-history" style="color:var(--acc);margin-right:.5rem"></i>Activity Logs</div>
+            <button class="btn btn-sm btn-danger" onclick="clearLogs()"><i class="fas fa-trash"></i> Clear Logs</button>
+          </div>
+          <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+            <div id="logsContent"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end main -->
+</div><!-- end adminApp -->
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-bg" id="custModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="custModalTitle">Add Customer</div>
+      <button class="modal-close" onclick="closeCustModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="custId">
+      <div class="field-row">
+        <div class="field-group"><label>Full Name *</label><input type="text" id="custName" placeholder="e.g. Rahul Sharma"></div>
+        <div class="field-group"><label>Phone *</label><input type="text" id="custPhone" placeholder="e.g. 9876543210"></div>
+      </div>
+      <div class="field-group"><label>Address *</label><textarea id="custAddr" placeholder="Full address"></textarea></div>
+      <div class="field-row">
+        <div class="field-group"><label>Pincode *</label><input type="text" id="custPin" placeholder="e.g. 431001" maxlength="6"></div>
+        <div class="field-group"><label>Plan</label>
+          <select id="custPlan">
+            <option value="">Select Plan</option>
+            <option>40 Mbps – ₹499/mo</option>
+            <option>75 Mbps – ₹699/mo</option>
+            <option>150 Mbps – ₹899/mo</option>
+            <option>300 Mbps – ₹1,199/mo</option>
+            <option>500 Mbps – ₹1,499/mo</option>
+            <option>1 Gbps – ₹1,999/mo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group"><label>Status</label>
+        <select id="custStatus">
+          <option value="Active">Active</option>
+          <option value="Pending">Pending</option>
+          <option value="Disconnected">Disconnected</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost2" onclick="closeCustModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()"><i class="fas fa-save"></i> Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MODAL -->
+<div class="modal-bg" id="planModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="planModalTitle">Add Plan</div>
+      <button class="modal-close" onclick="closePlanModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="planId">
+      <div class="field-row">
+        <div class="field-group"><label>Speed *</label><input type="text" id="planSpeed" placeholder="e.g. 150"></div>
+        <div class="field-group"><label>Unit</label>
+          <select id="planUnit"><option>Mbps</option><option>Gbps</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label>Monthly Price ₹ *</label><input type="number" id="planPrice" placeholder="e.g. 899"></div>
+        <div class="field-group"><label>Yearly Price ₹</label><input type="number" id="planYearly" placeholder="e.g. 9170"></div>
+      </div>
+      <div class="field-group"><label>Features (comma separated)</label><textarea id="planFeatures" placeholder="Unlimited Data, Free Installation, 24/7 Support"></textarea></div>
+      <div class="field-group">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+          <input type="checkbox" id="planPopular" style="width:auto"> Mark as Popular
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost2" onclick="closePlanModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlan()"><i class="fas fa-save"></i> Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- OFFER MODAL -->
+<div class="modal-bg" id="offerModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="offerModalTitle">Add Offer</div>
+      <button class="modal-close" onclick="closeOfferModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="offerId">
+      <div class="field-group"><label>Offer Title *</label><input type="text" id="offerTitle" placeholder="e.g. Summer Special"></div>
+      <div class="field-group"><label>Description *</label><textarea id="offerDesc" placeholder="Describe the offer..."></textarea></div>
+      <div class="field-row">
+        <div class="field-group"><label>Discount / Value</label><input type="text" id="offerValue" placeholder="e.g. 20% OFF or Free 1 Month"></div>
+        <div class="field-group"><label>Valid Until</label><input type="date" id="offerExpiry"></div>
+      </div>
+      <div class="field-group">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+          <input type="checkbox" id="offerActive" checked style="width:auto"> Active (show on website)
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost2" onclick="closeOfferModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOffer()"><i class="fas fa-save"></i> Save Offer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastWrap"></div>
+
+<script>
+// ===== STORAGE HELPERS =====
+const ls = {
+  get: k => JSON.parse(localStorage.getItem(k) || '[]'),
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  geto: k => JSON.parse(localStorage.getItem(k) || '{}'),
+  seto: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+};
+
+// ===== AUTH =====
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin@123';
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem('gic_admin', '1');
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminApp').classList.add('active');
+    initDashboard();
+    saveLog('Admin logged in');
+    toast('Welcome back, Admin!', 'success');
+  } else {
+    const err = document.getElementById('loginErr');
+    err.classList.add('show');
+    document.getElementById('loginErrMsg').textContent = 'Invalid credentials. Use admin / admin@123';
+    document.getElementById('loginPass').value = '';
+    setTimeout(() => err.classList.remove('show'), 4000);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('gic_admin');
+  location.reload();
+}
+
+function togglePw() {
+  const inp = document.getElementById('loginPass');
+  const eye = document.getElementById('pwEye');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  eye.className = inp.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginUser').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginPass').focus();
+});
+
+// Check session on load
+window.addEventListener('load', () => {
+  createParticles();
+  if (sessionStorage.getItem('gic_admin') === '1') {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminApp').classList.add('active');
+    initDashboard();
+  }
+  // Initialize default plans if none exist
+  if (!localStorage.getItem('gic_plans')) {
+    ls.set('gic_plans', [
+      { id: 1, speed: '40', unit: 'Mbps', price: 499, yearly: 5090, popular: false, features: 'Unlimited Data,24/7 Support,Free Installation,Basic Gaming' },
+      { id: 2, speed: '75', unit: 'Mbps', price: 699, yearly: 7130, popular: false, features: 'Unlimited Data,24/7 Support,Free Installation,HD Streaming' },
+      { id: 3, speed: '150', unit: 'Mbps', price: 899, yearly: 9170, popular: true, features: 'Unlimited Data,Priority Support,Free Installation,4K Streaming,Low Latency' },
+      { id: 4, speed: '300', unit: 'Mbps', price: 1199, yearly: 12230, popular: false, features: 'Unlimited Data,24/7 Support,Free Installation,Multi-device,Gaming Ready' },
+      { id: 5, speed: '500', unit: 'Mbps', price: 1499, yearly: 15290, popular: false, features: 'Unlimited Data,Priority Support,Free Installation,Pro Gaming,Work From Home' },
+      { id: 6, speed: '1', unit: 'Gbps', price: 1999, yearly: 20390, popular: false, features: 'Unlimited Data,Dedicated Support,Free Installation,Enterprise Grade,Max Performance' }
+    ]);
+  }
+});
+
+// ===== INIT =====
+function initDashboard() {
+  renderOverview();
+  renderCustomers();
+  renderPlans();
+  renderInstallations();
+  renderOffers();
+  renderLogs();
+  updatePendingBadge();
+}
+
+function refreshData() {
+  initDashboard();
+  toast('Data refreshed!', 'success');
+}
+
+// ===== NAVIGATION =====
+function navTo(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const titles = {
+    overview: ['Overview', 'Welcome back, Admin'],
+    customers: ['Customer Management', 'Add, edit, and manage your customers'],
+    plans: ['Plan Management', 'Manage broadband plans'],
+    installations: ['Installation Requests', 'Track and manage installation requests'],
+    offers: ['Offers Manager', 'Create and manage promotional offers'],
+    logs: ['Activity Logs', 'System activity history']
+  };
+  const t = titles[page] || [page, ''];
+  document.getElementById('pageTitle').textContent = t[0];
+  document.getElementById('pageSub').textContent = t[1];
+  closeSidebar();
+}
+
+// ===== SIDEBAR (MOBILE) =====
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  btn.innerHTML = html.dataset.theme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+}
+
+// ===== TOAST =====
+function toast(msg, type = 'success') {
+  const wrap = document.getElementById('toastWrap');
+  const div = document.createElement('div');
+  div.className = `toast ${type}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-circle-exclamation' };
+  div.innerHTML = `<i class="fas ${icons[type] || icons.success} toast-icon ${type}"></i>${msg}`;
+  wrap.appendChild(div);
+  setTimeout(() => {
+    div.classList.add('out');
+    setTimeout(() => div.remove(), 300);
+  }, 3000);
+}
+
+// ===== SAVE LOG =====
+function saveLog(msg) {
+  const l = ls.get('gic_logs');
+  l.unshift({ time: new Date().toLocaleString(), msg });
+  ls.set('gic_logs', l.slice(0, 500));
+}
+
+// ===== OVERVIEW =====
+function renderOverview() {
+  const customers = ls.get('gic_customers');
+  const requests = ls.get('gic_requests');
+  const offers = ls.get('gic_offers');
+  const plans = ls.get('gic_plans');
+
+  const active = customers.filter(c => c.status === 'Active').length;
+  const pending = requests.filter(r => r.status === 'Pending').length;
+  const activeOffers = offers.filter(o => o.active).length;
+
+  const cards = [
+    { label: 'Total Customers', value: customers.length, icon: 'fa-users', color: '#6d28d9', bg: 'rgba(109,40,217,.15)', change: '+' + customers.filter(c => c.joinDate === new Date().toLocaleDateString()).length + ' today', badge: 'Total' },
+    { label: 'Active Plans', value: active, icon: 'fa-wifi', color: '#10b981', bg: 'rgba(16,185,129,.15)', change: `${active} of ${customers.length} active`, badge: 'Live' },
+    { label: 'Pending Installs', value: pending, icon: 'fa-tools', color: '#f59e0b', bg: 'rgba(245,158,11,.15)', change: 'Awaiting completion', badge: 'Pending' },
+    { label: 'Active Offers', value: activeOffers, icon: 'fa-gift', color: '#0ea5e9', bg: 'rgba(14,165,233,.15)', change: `${plans.length} total plans`, badge: 'Promo' }
+  ];
+
+  document.getElementById('overviewCards').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <div class="stat-card-icon" style="background:${c.bg}"><i class="fas ${c.icon}" style="color:${c.color}"></i></div>
+        <span class="stat-card-badge" style="background:${c.bg};color:${c.color}">${c.badge}</span>
+      </div>
+      <div class="stat-card-num">${c.value}</div>
+      <div class="stat-card-label">${c.label}</div>
+      <div class="stat-card-change"><i class="fas fa-arrow-trend-up" style="margin-right:.3rem"></i>${c.change}</div>
+    </div>
+  `).join('');
+
+  // Activity list
+  const logs = ls.get('gic_logs').slice(0, 15);
+  const aIcons = [
+    { match: 'login', icon: 'fa-sign-in-alt', color: 'rgba(109,40,217,.2)', ic: '#a78bfa' },
+    { match: 'customer', icon: 'fa-user', color: 'rgba(16,185,129,.2)', ic: '#10b981' },
+    { match: 'install', icon: 'fa-tools', color: 'rgba(245,158,11,.2)', ic: '#f59e0b' },
+    { match: 'offer', icon: 'fa-gift', color: 'rgba(14,165,233,.2)', ic: '#38bdf8' },
+    { match: 'plan', icon: 'fa-tags', color: 'rgba(109,40,217,.2)', ic: '#a78bfa' },
+  ];
+  document.getElementById('activityList').innerHTML = logs.length ? logs.map(l => {
+    const ai = aIcons.find(a => l.msg.toLowerCase().includes(a.match)) || { icon: 'fa-circle-dot', color: 'rgba(255,255,255,.08)', ic: 'var(--text3)' };
+    return `<div class="activity-item">
+      <div class="activity-icon" style="background:${ai.color}"><i class="fas ${ai.icon}" style="color:${ai.ic}"></i></div>
+      <div><div class="activity-text">${l.msg}</div><div class="activity-time">${l.time}</div></div>
+    </div>`;
+  }).join('') : '<div class="empty-state"><i class="fas fa-history"></i>No activity yet</div>';
+
+  // Pending installs widget
+  const pend = requests.filter(r => r.status === 'Pending').slice(0, 4);
+  document.getElementById('pendingInstalls').innerHTML = pend.length ? pend.map(r => `
+    <div class="activity-item">
+      <div class="activity-icon" style="background:rgba(245,158,11,.15)"><i class="fas fa-tools" style="color:#f59e0b"></i></div>
+      <div style="flex:1">
+        <div class="activity-text">${r.name} · ${r.pincode}</div>
+        <div class="activity-time">${r.plan} · ${r.date}</div>
+      </div>
+      <button class="btn btn-sm btn-success" onclick="completeInstall(${r.id})"><i class="fas fa-check"></i></button>
+    </div>
+  `).join('') : '<div class="empty-state"><i class="fas fa-check-circle"></i>No pending installations</div>';
+}
+
+// ===== CUSTOMERS =====
+function renderCustomers() {
+  const all = ls.get('gic_customers');
+  const q = (document.getElementById('custSearch')?.value || '').toLowerCase();
+  const filtered = q ? all.filter(c =>
+    c.name?.toLowerCase().includes(q) ||
+    c.phone?.includes(q) ||
+    c.pincode?.includes(q) ||
+    c.plan?.toLowerCase().includes(q)
+  ) : all;
+
+  const tbody = document.getElementById('custTable');
+  if (!tbody) return;
+  tbody.innerHTML = filtered.length ? filtered.map(c => `
+    <tr>
+      <td><strong>${c.name || '-'}</strong></td>
+      <td><a href="tel:${c.phone}" style="color:var(--acc2)">${c.phone || '-'}</a></td>
+      <td>${c.pincode || '-'}</td>
+      <td style="font-size:.78rem">${c.plan || '-'}</td>
+      <td><span class="status-badge status-${(c.status||'pending').toLowerCase()}">${c.status || 'Pending'}</span></td>
+      <td style="font-size:.78rem;color:var(--text3)">${c.joinDate || '-'}</td>
+      <td>
+        <div style="display:flex;gap:.35rem">
+          <button class="btn btn-sm btn-ghost2" onclick="editCustomer(${c.id})" title="Edit"><i class="fas fa-pencil"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})" title="Delete"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-users"></i>No customers found</div></td></tr>';
+}
+
+function openCustModal(c) {
+  document.getElementById('custModalTitle').textContent = c ? 'Edit Customer' : 'Add Customer';
+  document.getElementById('custId').value = c ? c.id : '';
+  document.getElementById('custName').value = c?.name || '';
+  document.getElementById('custPhone').value = c?.phone || '';
+  document.getElementById('custAddr').value = c?.address || '';
+  document.getElementById('custPin').value = c?.pincode || '';
+  document.getElementById('custPlan').value = c?.plan || '';
+  document.getElementById('custStatus').value = c?.status || 'Active';
+  document.getElementById('custModal').classList.add('open');
+}
+function closeCustModal() { document.getElementById('custModal').classList.remove('open'); }
+
+function saveCustomer() {
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const addr = document.getElementById('custAddr').value.trim();
+  const pin = document.getElementById('custPin').value.trim();
+  if (!name || !phone || !pin) { toast('Please fill required fields!', 'error'); return; }
+  const custs = ls.get('gic_customers');
+  const id = document.getElementById('custId').value;
+  const obj = {
+    id: id ? +id : Date.now(),
+    name, phone, address: addr, pincode: pin,
+    plan: document.getElementById('custPlan').value,
+    status: document.getElementById('custStatus').value,
+    joinDate: new Date().toLocaleDateString()
+  };
+  if (id) {
+    const i = custs.findIndex(c => c.id === +id);
+    if (i > -1) { obj.joinDate = custs[i].joinDate; custs[i] = obj; }
+    saveLog(`Customer updated: ${name}`);
+    toast('Customer updated!', 'success');
+  } else {
+    custs.unshift(obj);
+    saveLog(`New customer added: ${name}`);
+    toast('Customer added!', 'success');
+  }
+  ls.set('gic_customers', custs);
+  closeCustModal();
+  renderCustomers();
+  renderOverview();
+}
+
+function editCustomer(id) {
+  const c = ls.get('gic_customers').find(x => x.id === id);
+  if (c) openCustModal(c);
+}
+
+function deleteCustomer(id) {
+  if (!confirm('Delete this customer? This cannot be undone.')) return;
+  const custs = ls.get('gic_customers').filter(c => c.id !== id);
+  ls.set('gic_customers', custs);
+  saveLog('Customer deleted');
+  toast('Customer deleted', 'success');
+  renderCustomers();
+  renderOverview();
+}
+
+// ===== PLANS =====
+function renderPlans() {
+  const plans = ls.get('gic_plans');
+  const grid = document.getElementById('plansGrid');
+  if (!grid) return;
+  grid.innerHTML = plans.length ? plans.map(p => `
+    <div class="plan-admin-card ${p.popular ? 'popular' : ''}">
+      ${p.popular ? '<span style="font-size:.7rem;font-weight:700;color:var(--acc);letter-spacing:.5px">⭐ MOST POPULAR</span>' : ''}
+      <div class="plan-speed-tag">${p.speed} ${p.unit}</div>
+      <div class="plan-price-tag">₹${(+p.price).toLocaleString('en-IN')}/mo · ₹${(+(p.yearly||0)).toLocaleString('en-IN')}/yr</div>
+      <ul class="plan-features-list">
+        ${(p.features||'').split(',').map(f => `<li><i class="fas fa-check-circle"></i>${f.trim()}</li>`).join('')}
+      </ul>
+      <div class="plan-card-footer">
+        <button class="btn btn-sm btn-ghost2" onclick="editPlan(${p.id})" style="flex:1"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePlan(${p.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-tags"></i>No plans added yet</div>';
+}
+
+function openPlanModal(p) {
+  document.getElementById('planModalTitle').textContent = p ? 'Edit Plan' : 'Add Plan';
+  document.getElementById('planId').value = p ? p.id : '';
+  document.getElementById('planSpeed').value = p?.speed || '';
+  document.getElementById('planUnit').value = p?.unit || 'Mbps';
+  document.getElementById('planPrice').value = p?.price || '';
+  document.getElementById('planYearly').value = p?.yearly || '';
+  document.getElementById('planFeatures').value = p?.features || '';
+  document.getElementById('planPopular').checked = p?.popular || false;
+  document.getElementById('planModal').classList.add('open');
+}
+function closePlanModal() { document.getElementById('planModal').classList.remove('open'); }
+
+function savePlan() {
+  const speed = document.getElementById('planSpeed').value.trim();
+  const price = document.getElementById('planPrice').value;
+  if (!speed || !price) { toast('Speed and price are required!', 'error'); return; }
+  const plans = ls.get('gic_plans');
+  const id = document.getElementById('planId').value;
+  const obj = {
+    id: id ? +id : Date.now(),
+    speed, unit: document.getElementById('planUnit').value,
+    price: +price, yearly: +(document.getElementById('planYearly').value || 0),
+    features: document.getElementById('planFeatures').value,
+    popular: document.getElementById('planPopular').checked
+  };
+  if (id) {
+    const i = plans.findIndex(p => p.id === +id);
+    if (i > -1) plans[i] = obj;
+    saveLog(`Plan updated: ${speed} ${obj.unit}`);
+    toast('Plan updated!', 'success');
+  } else {
+    plans.push(obj);
+    saveLog(`New plan added: ${speed} ${obj.unit}`);
+    toast('Plan added!', 'success');
+  }
+  ls.set('gic_plans', plans);
+  closePlanModal();
+  renderPlans();
+}
+
+function editPlan(id) {
+  const p = ls.get('gic_plans').find(x => x.id === id);
+  if (p) openPlanModal(p);
+}
+
+function deletePlan(id) {
+  if (!confirm('Delete this plan?')) return;
+  ls.set('gic_plans', ls.get('gic_plans').filter(p => p.id !== id));
+  saveLog('Plan deleted');
+  toast('Plan deleted', 'success');
+  renderPlans();
+}
+
+// ===== INSTALLATIONS =====
+function renderInstallations() {
+  const all = ls.get('gic_requests');
+  const q = (document.getElementById('instSearch')?.value || '').toLowerCase();
+  const filter = document.getElementById('instFilter')?.value || '';
+  let filtered = all;
+  if (q) filtered = filtered.filter(r =>
+    r.name?.toLowerCase().includes(q) || r.phone?.includes(q) || r.pincode?.includes(q)
+  );
+  if (filter) filtered = filtered.filter(r => r.status === filter);
+
+  const tbody = document.getElementById('instTable');
+  if (!tbody) return;
+  tbody.innerHTML = filtered.length ? filtered.map(r => `
+    <tr>
+      <td><strong>${r.name || '-'}</strong></td>
+      <td><a href="tel:${r.phone}" style="color:var(--acc2)">${r.phone || '-'}</a></td>
+      <td style="font-size:.78rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '-'}</td>
+      <td>${r.pincode || '-'}</td>
+      <td style="font-size:.78rem">${r.plan || '-'}</td>
+      <td><span class="status-badge status-${r.status === 'Completed' ? 'completed' : 'pending'}">${r.status || 'Pending'}</span></td>
+      <td style="font-size:.78rem;color:var(--text3)">${r.date || '-'}</td>
+      <td>
+        <div style="display:flex;gap:.35rem">
+          ${r.status !== 'Completed' ? `<button class="btn btn-sm btn-success" onclick="completeInstall(${r.id})"><i class="fas fa-check"></i> Done</button>` : '<span style="color:var(--success);font-size:.78rem"><i class="fas fa-check-circle"></i></span>'}
+          <button class="btn btn-sm btn-danger" onclick="deleteInstall(${r.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-tools"></i>No installation requests found</div></td></tr>';
+  updatePendingBadge();
+}
+
+function completeInstall(id) {
+  const reqs = ls.get('gic_requests');
+  const i = reqs.findIndex(r => r.id === id);
+  if (i > -1) {
+    reqs[i].status = 'Completed';
+    ls.set('gic_requests', reqs);
+    // Update customer status too
+    const custs = ls.get('gic_customers');
+    const ci = custs.findIndex(c => c.phone === reqs[i].phone);
+    if (ci > -1) { custs[ci].status = 'Active'; ls.set('gic_customers', custs); }
+    saveLog(`Installation completed for ${reqs[i].name}`);
+    toast('Installation marked as completed!', 'success');
+    renderInstallations();
+    renderOverview();
+    renderCustomers();
+    updatePendingBadge();
+  }
+}
+
+function deleteInstall(id) {
+  if (!confirm('Delete this request?')) return;
+  ls.set('gic_requests', ls.get('gic_requests').filter(r => r.id !== id));
+  saveLog('Installation request deleted');
+  toast('Deleted', 'success');
+  renderInstallations();
+  renderOverview();
+}
+
+function updatePendingBadge() {
+  const pend = ls.get('gic_requests').filter(r => r.status === 'Pending').length;
+  const badge = document.getElementById('pendingBadge');
+  if (badge) { badge.textContent = pend; badge.style.display = pend > 0 ? '' : 'none'; }
+}
+
+// ===== OFFERS =====
+function renderOffers() {
+  const offers = ls.get('gic_offers');
+  const grid = document.getElementById('offersGrid');
+  if (!grid) return;
+  grid.innerHTML = offers.length ? offers.map(o => `
+    <div class="offer-card">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+        ${o.active ? '<span class="active-dot"></span>' : ''}
+        <span style="font-size:.72rem;color:${o.active ? 'var(--success)' : 'var(--text3)'}">${o.active ? 'Active' : 'Inactive'}</span>
+      </div>
+      <div class="offer-title">${o.title}</div>
+      <div class="offer-desc">${o.desc}</div>
+      <div class="offer-meta">
+        <span style="font-weight:700;color:var(--acc)">${o.value || ''}</span>
+        <span>${o.expiry ? 'Until ' + o.expiry : 'No expiry'}</span>
+      </div>
+      <div class="offer-actions">
+        <button class="btn btn-sm btn-ghost2" onclick="editOffer(${o.id})" style="flex:1"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="btn btn-sm ${o.active ? 'btn-warn' : 'btn-success'}" onclick="toggleOffer(${o.id})">${o.active ? 'Deactivate' : 'Activate'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOffer(${o.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-gift"></i>No offers created yet. Add your first offer!</div>';
+}
+
+function openOfferModal(o) {
+  document.getElementById('offerModalTitle').textContent = o ? 'Edit Offer' : 'Add Offer';
+  document.getElementById('offerId').value = o ? o.id : '';
+  document.getElementById('offerTitle').value = o?.title || '';
+  document.getElementById('offerDesc').value = o?.desc || '';
+  document.getElementById('offerValue').value = o?.value || '';
+  document.getElementById('offerExpiry').value = o?.expiry || '';
+  document.getElementById('offerActive').checked = o ? o.active : true;
+  document.getElementById('offerModal').classList.add('open');
+}
+function closeOfferModal() { document.getElementById('offerModal').classList.remove('open'); }
+
+function saveOffer() {
+  const title = document.getElementById('offerTitle').value.trim();
+  const desc = document.getElementById('offerDesc').value.trim();
+  if (!title || !desc) { toast('Title and description are required!', 'error'); return; }
+  const offers = ls.get('gic_offers');
+  const id = document.getElementById('offerId').value;
+  const obj = {
+    id: id ? +id : Date.now(),
+    title, desc,
+    value: document.getElementById('offerValue').value.trim(),
+    expiry: document.getElementById('offerExpiry').value,
+    active: document.getElementById('offerActive').checked
+  };
+  if (id) {
+    const i = offers.findIndex(o => o.id === +id);
+    if (i > -1) offers[i] = obj;
+    saveLog(`Offer updated: ${title}`);
+    toast('Offer updated!', 'success');
+  } else {
+    offers.unshift(obj);
+    saveLog(`New offer added: ${title}`);
+    toast('Offer added!', 'success');
+  }
+  ls.set('gic_offers', offers);
+  closeOfferModal();
+  renderOffers();
+  renderOverview();
+}
+
+function editOffer(id) {
+  const o = ls.get('gic_offers').find(x => x.id === id);
+  if (o) openOfferModal(o);
+}
+
+function toggleOffer(id) {
+  const offers = ls.get('gic_offers');
+  const i = offers.findIndex(o => o.id === id);
+  if (i > -1) {
+    offers[i].active = !offers[i].active;
+    ls.set('gic_offers', offers);
+    saveLog(`Offer ${offers[i].active ? 'activated' : 'deactivated'}: ${offers[i].title}`);
+    toast(`Offer ${offers[i].active ? 'activated' : 'deactivated'}!`, 'success');
+    renderOffers();
+    renderOverview();
+  }
+}
+
+function deleteOffer(id) {
+  if (!confirm('Delete this offer?')) return;
+  const offers = ls.get('gic_offers').filter(o => o.id !== id);
+  ls.set('gic_offers', offers);
+  saveLog('Offer deleted');
+  toast('Offer deleted', 'success');
+  renderOffers();
+  renderOverview();
+}
+
+// ===== LOGS =====
+function renderLogs() {
+  const logs = ls.get('gic_logs');
+  const cont = document.getElementById('logsContent');
+  if (!cont) return;
+  cont.innerHTML = logs.length ? logs.map(l => `
+    <div class="activity-item">
+      <div class="activity-icon" style="background:var(--glass)"><i class="fas fa-circle-dot" style="color:var(--acc);font-size:.5rem"></i></div>
+      <div><div class="activity-text">${l.msg}</div><div class="activity-time">${l.time}</div></div>
+    </div>
+  `).join('') : '<div class="empty-state"><i class="fas fa-history"></i>No logs yet</div>';
+}
+
+function clearLogs() {
+  if (!confirm('Clear all logs?')) return;
+  ls.set('gic_logs', []);
+  saveLog('Logs cleared by admin');
+  renderLogs();
+  toast('Logs cleared', 'success');
+}
+
+// ===== PARTICLES =====
+function createParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+    p.style.opacity = (0.2 + Math.random() * 0.5);
+    container.appendChild(p);
+  }
+}
+</script>
+</body>
+</html>
